@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARDS Ventilation Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
+            color: #2c2c2a;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #2c2c2a;
+        }
+
+        .subtitle {
+            color: #888780;
+            font-size: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .chart-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #2c2c2a;
+        }
+
+        .calculator-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #5f5e5a;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 16px;
+            border: 1px solid #d3d1c7;
+            border-radius: 8px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #378ADD;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-row input {
+            flex: 1;
+        }
+
+        .input-value {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 80px;
+            color: #2c2c2a;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .strategy-indicator {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .strategy-indicator.mild {
+            background: #e6f1fb;
+        }
+
+        .strategy-indicator.severe {
+            background: #faeeda;
+        }
+
+        .strategy-indicator.none {
+            background: #eaf3de;
+        }
+
+        .strategy-indicator .icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .strategy-indicator.mild .icon,
+        .strategy-indicator.mild .title {
+            color: #185fa5;
+        }
+
+        .strategy-indicator.severe .icon,
+        .strategy-indicator.severe .title {
+            color: #854f0b;
+        }
+
+        .strategy-indicator.none .icon,
+        .strategy-indicator.none .title {
+            color: #3b6d11;
+        }
+
+        .strategy-indicator .title {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .strategy-indicator .subtitle {
+            font-size: 13px;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        thead tr {
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 8px;
+            color: #5f5e5a;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 10px 8px;
+            font-size: 14px;
+        }
+
+        tbody tr {
+            border-bottom: 0.5px solid #f1efe8;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #5f5e5a;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 500;
+            color: #2c2c2a;
+        }
+
+        .info-note {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #5f5e5a;
+            margin-top: 1rem;
+        }
+
+        .table-header {
+            font-size: 14px;
+            color: #5f5e5a;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+
+            body {
+                padding: 1rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ARDS Ventilation Calculator</h1>
+        <p class="subtitle">ARDS Network protocols for mechanical ventilation strategy selection</p>
+
+        <!-- Charts Section -->
+        <div class="chart-section">
+            <h2 class="chart-title">Low PEEP / High FiO₂ Strategy</h2>
+            <p style="font-size: 14px; color: #5f5e5a; margin-bottom: 1rem;">
+                For mild ARDS (Horovitz 200-300 mmHg)
+            </p>
+            <div class="chart-container">
+                <canvas id="lowPEEPChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2 class="chart-title">High PEEP / Low FiO₂ Strategy</h2>
+            <p style="font-size: 14px; color: #5f5e5a; margin-bottom: 1rem;">
+                For moderate/severe ARDS (Horovitz &lt;200 mmHg)
+            </p>
+            <div class="chart-container">
+                <canvas id="highPEEPChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Ventilation Strategy Calculator -->
+        <div class="calculator-section">
+            <h2 class="chart-title">Ventilation Strategy Calculator</h2>
+            
+            <div class="input-group">
+                <label>Horovitz quotient (PaO₂/FiO₂ in mmHg)</label>
+                <div class="input-row">
+                    <input type="number" id="horovitz" min="50" max="400" value="180" step="5">
+                    <span class="input-value" id="horovitzDisplay">180 mmHg</span>
+                </div>
+            </div>
+
+            <div id="strategyIndicator" class="strategy-indicator"></div>
+
+            <div id="recommendations"></div>
+        </div>
+
+        <!-- Tidal Volume Calculator -->
+        <div class="calculator-section">
+            <h2 class="chart-title">Tidal Volume Calculator</h2>
+            
+            <div class="grid-2" style="margin-bottom: 1rem;">
+                <div>
+                    <label>Height (cm)</label>
+                    <input type="number" id="height" min="140" max="220" value="170" step="1">
+                </div>
+                <div>
+                    <label>Gender</label>
+                    <select id="gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2" id="tidalResults"></div>
+
+            <div class="info-note">
+                Lung-protective ventilation: 6 mL/kg ideal body weight. ARDSNet protocol uses predicted body weight (PBW) based on height and gender.
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script>
+        // ARDS Network tables
+        const lowPEEPStrategy = [
+            { fio2: 0.3, peep: 5 },
+            { fio2: 0.4, peep: 5 },
+            { fio2: 0.4, peep: 8 },
+            { fio2: 0.5, peep: 8 },
+            { fio2: 0.5, peep: 10 },
+            { fio2: 0.6, peep: 10 },
+            { fio2: 0.7, peep: 10 },
+            { fio2: 0.7, peep: 12 },
+            { fio2: 0.7, peep: 14 },
+            { fio2: 0.8, peep: 14 },
+            { fio2: 0.9, peep: 14 },
+            { fio2: 0.9, peep: 16 },
+            { fio2: 0.9, peep: 18 },
+            { fio2: 1.0, peep: 21 }
+        ];
+
+        const highPEEPStrategy = [
+            { fio2: 0.3, peep: 5 },
+            { fio2: 0.3, peep: 8 },
+            { fio2: 0.3, peep: 10 },
+            { fio2: 0.3, peep: 12 },
+            { fio2: 0.3, peep: 14 },
+            { fio2: 0.4, peep: 14 },
+            { fio2: 0.4, peep: 16 },
+            { fio2: 0.5, peep: 16 },
+            { fio2: 0.5, peep: 18 },
+            { fio2: 0.65, peep: 20 },
+            { fio2: 0.8, peep: 22 },
+            { fio2: 0.9, peep: 22 },
+            { fio2: 1.0, peep: 22 },
+            { fio2: 1.0, peep: 24 }
+        ];
+
+        // Create charts
+        const chartConfig = {
+            type: 'line',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: 'FiO₂',
+                            font: { size: 14 }
+                        },
+                        min: 0.2,
+                        max: 1.1,
+                        ticks: {
+                            callback: function(value) {
+                                return (value * 100).toFixed(0) + '%';
+                            }
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: 'PEEP (cmH₂O)',
+                            font: { size: 14 }
+                        },
+                        min: 0,
+                        max: 26
+                    }
+                }
+            }
+        };
+
+        // Low PEEP chart
+        new Chart(document.getElementById('lowPEEPChart'), {
+            ...chartConfig,
+            data: {
+                datasets: [{
+                    data: lowPEEPStrategy.map(d => ({ x: d.fio2, y: d.peep })),
+                    borderColor: '#378ADD',
+                    backgroundColor: '#378ADD',
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            }
+        });
+
+        // High PEEP chart
+        new Chart(document.getElementById('highPEEPChart'), {
+            ...chartConfig,
+            data: {
+                datasets: [{
+                    data: highPEEPStrategy.map(d => ({ x: d.fio2, y: d.peep })),
+                    borderColor: '#D85A30',
+                    backgroundColor: '#D85A30',
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            }
+        });
+
+        // Calculator functions
+        function updateRecommendations() {
+            const horovitz = parseFloat(document.getElementById('horovitz').value);
+            document.getElementById('horovitzDisplay').textContent = Math.round(horovitz) + ' mmHg';
+            
+            const isLowPEEP = horovitz >= 200;
+            const strategy = isLowPEEP ? lowPEEPStrategy : highPEEPStrategy;
+            const strategyName = isLowPEEP ? 'Low PEEP / High FiO₂' : 'High PEEP / Low FiO₂';
+            
+            let severityText, strategyClass;
+            if (horovitz >= 300) {
+                severityText = 'Horovitz ≥300 mmHg (No ARDS - consider other diagnoses)';
+                strategyClass = 'none';
+            } else if (horovitz >= 200) {
+                severityText = 'Horovitz 200-300 mmHg (Mild ARDS)';
+                strategyClass = 'mild';
+            } else {
+                severityText = 'Horovitz <200 mmHg (Moderate/Severe ARDS)';
+                strategyClass = 'severe';
+            }
+            
+            const indicator = document.getElementById('strategyIndicator');
+            indicator.className = `strategy-indicator ${strategyClass}`;
+            indicator.innerHTML = `
+                <div class="icon">⚠️</div>
+                <div>
+                    <div class="title">${strategyName}</div>
+                    <div class="subtitle">${severityText}</div>
+                </div>
+            `;
+            
+            if (horovitz >= 300) {
+                document.getElementById('recommendations').innerHTML = `
+                    <div class="info-note">
+                        PaO₂/FiO₂ ratio ≥300 mmHg does not meet ARDS criteria. Consider alternative diagnoses.
+                    </div>
+                `;
+                return;
+            }
+            
+            let tableHTML = `
+                <div class="table-header">
+                    Recommended FiO₂/PEEP combinations (titrate based on oxygenation):
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>FiO₂</th>
+                            <th>PEEP (cmH₂O)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            strategy.forEach(combo => {
+                tableHTML += `
+                    <tr>
+                        <td>${(combo.fio2 * 100).toFixed(0)}%</td>
+                        <td>${combo.peep}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('recommendations').innerHTML = tableHTML;
+        }
+
+        function calculateIdealBodyWeight(height, isMale) {
+            const baseWeight = isMale ? 50 : 45.5;
+            const pbw = baseWeight + 0.91 * (height - 152.4);
+            return Math.round(pbw);
+        }
+
+        function updateTidalVolume() {
+            const height = parseFloat(document.getElementById('height').value);
+            const isMale = document.getElementById('gender').value === 'male';
+            
+            const ibw = calculateIdealBodyWeight(height, isMale);
+            const tidalVolume = Math.round(ibw * 6);
+            
+            document.getElementById('tidalResults').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-label">Ideal body weight</div>
+                    <div class="metric-value">${ibw} kg</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Tidal volume (6 mL/kg)</div>
+                    <div class="metric-value">${tidalVolume} mL</div>
+                </div>
+            `;
+        }
+
+        // Event listeners
+        document.getElementById('horovitz').addEventListener('input', updateRecommendations);
+        document.getElementById('height').addEventListener('input', updateTidalVolume);
+        document.getElementById('gender').addEventListener('change', updateTidalVolume);
+
+        // Initialize
+        updateRecommendations();
+        updateTidalVolume();
+    </script>
+</body>
+</html>
